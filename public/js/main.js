@@ -1,5 +1,7 @@
 /*function for general use */
 
+
+				
 /*this function returns the value associated with 'whichParam' on the url*/
 function getURLParameters(whichParam){
 
@@ -359,6 +361,7 @@ var interval_timer;
 socket.on('game_update', function(payload){
 	console.log('*** Client Log Message: \'game_update\'\n\tpayload: '+JSON.stringify(payload));
 	/*chekc for a good board update*/
+
 	if(payload.result == 'fail'){
 		console.log(payload.message);
 		window.location.href = 'lobby.html?username='+username;
@@ -394,6 +397,7 @@ socket.on('game_update', function(payload){
 	interval_timer = setInterval(function(last_time){
 		return function(){
 			var d = new Date();
+			var t = d.getTime();
 			var elapsedmili = d.getTime() - last_time;
 			var minutes = Math.floor(elapsedmili / (60 * 1000));
 			var seconds = Math.floor((elapsedmili % (60 *1000)) / 1000);
@@ -427,37 +431,38 @@ socket.on('game_update', function(payload){
 	var row,column;
 	for(row = 0; row < 8; row++){
 		for(column = 0; column < 8; column++){
+
 			/*if a board space has changed */
 			if(old_board[row][column] != board [row][column]){
 				if(old_board[row][column] == '?' && board[row][column] == ' '){
-					$('#'+row+'_'+column).html('<img src ="assets/images/empty.gif" alt="empty square"/>');
+					$('#'+row+'_'+column).html('<img src ="assets/images/empty.gif?"+t alt="empty square"/>');
 				}
 				else if(old_board[row][column] == '?' && board[row][column] == 'w'){
-					$('#'+row+'_'+column).html('<img src ="assets/images/empty_to_white.gif" alt="white square"/>');
+					$('#'+row+'_'+column).html('<img src ="./assets/images/empty_to_white.gif?"+t alt="white square"/>');
 				}
 				else if(old_board[row][column] == '?' && board[row][column] == 'b'){
-					$('#'+row+'_'+column).html('<img src ="assets/images/empty_to_black.gif" alt="black square"/>');
+					$('#'+row+'_'+column).html('<img src ="./assets/images/empty_to_black.gif?"+t alt="black square"/>');
 				}
 				else if(old_board[row][column] == ' ' && board[row][column] == 'w'){
-					$('#'+row+'_'+column).html('<img src ="assets/images/empty_to_white.gif" alt="white square"/>');
+					$('#'+row+'_'+column).html('<img src ="./assets/images/empty_to_white.gif?"+t alt="white square"/>');
 				}
 				else if(old_board[row][column] == ' ' && board[row][column] == 'b'){
-					$('#'+row+'_'+column).html('<img src ="assets/images/empty_to_black.gif" alt="black square"/>');
+					$('#'+row+'_'+column).html('<img src ="./assets/images/empty_to_black.gif?"+t alt="black square"/>');
 				}
 				else if(old_board[row][column] == 'w' && board[row][column] == ' '){
-					$('#'+row+'_'+column).html('<img src ="assets/images/white_to_empty.gif" alt="empty square"/>');
+					$('#'+row+'_'+column).html('<img src ="./assets/images/white_to_empty.gif?"+t alt="empty square"/>');
 				}
 				else if(old_board[row][column] == 'b' && board[row][column] == ' '){
-					$('#'+row+'_'+column).html('<img src ="assets/images/black_to_empty.gif" alt="empty square"/>');
+					$('#'+row+'_'+column).html('<img src ="./assets/images/black_to_empty.gif?"+t alt="empty square"/>');
 				}
 				else if(old_board[row][column] == 'b' && board[row][column] == 'w'){
-					$('#'+row+'_'+column).html('<img src ="assets/images/black_to_white.gif" alt="white square"/>');
+					$('#'+row+'_'+column).html('<img src ="./assets/images/black_to_white.gif?"+t alt="white square"/>');
 				}
 				else if(old_board[row][column] == 'w' && board[row][column] == 'b'){
-					$('#'+row+'_'+column).html('<img src ="assets/images/white_to_black.gif" alt="black square"/>');
+					$('#'+row+'_'+column).html('<img src ="./assets/images/white_to_black.gif?"+t alt="black square"/>');
 				}
 				else{
-					$('#'+row+'_'+column).html('<img src ="assets/images/error.gif" alt="error"/>');
+					$('#'+row+'_'+column).html('<img src ="./assets/images/error.gif?"+t alt="error"/>');
 				}
 			}
 
@@ -475,11 +480,19 @@ socket.on('game_update', function(payload){
 
 					$('#'+row+'_'+column).click(function(r,c){
 						return function(){
+
+
 							var payload = {};
 							payload.row = r;
 							payload.column = c;
 							payload.color = my_color;
+							
 							console.log('*** Client Log message: \'play_token\' payload: '+JSON.stringify(payload));
+
+
+
+
+	
 							socket.emit('play_token',payload);
 
 						};
@@ -489,12 +502,13 @@ socket.on('game_update', function(payload){
 				else{
 					$('#'+row+'_'+column).click(function(r,c){
 						return function(){
+
 							var payload = {};
 							payload.row = r;
 							payload.column = c;
 							payload.color = my_color;
 							if($('#'+r+'_'+c) !== 'w' || 'b'){
-								$('#'+r+'_'+c).html('<img src ="assets/images/error.gif" alt="error"/>');
+								$('#'+r+'_'+c).html('<img src ="./assets/images/error.gif?"+t alt="error"/>');
 							}
 						};
 					}(row,column));

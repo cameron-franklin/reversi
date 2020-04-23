@@ -91,6 +91,8 @@ function invite(who){
 	var payload = {};
 	payload.requested_user = who;
 
+
+
 	console.log('*** Client log message: \'invite\' payload: '+JSON.stringify(payload));
 	socket.emit('invite',payload);
 }
@@ -100,6 +102,7 @@ socket.on('invite_response',function(payload){
 		alert(payload.message);
 		return;
 	}
+
 	var newNode = makeInvitedButton(payload.socket_id);
 	$('.socket_'+payload.socket_id+' button').replaceWith(newNode);
 });
@@ -110,6 +113,11 @@ socket.on('invited',function(payload){
 		alert(payload.message);
 		return;
 	}
+	var newHTML = '<p><b> you have been invited to a game</p></b>';
+	var newNode = $(newHTML);
+	newNode.hide();
+	$('#messages').prepend(newNode);
+	newNode.slideDown(1000);
 	var newNode = makePlayButton(payload.socket_id);
 	$('.socket_'+payload.socket_id+' button').replaceWith(newNode);
 });
@@ -132,6 +140,7 @@ socket.on('uninvite_response',function(payload){
 		alert(payload.message);
 		return;
 	}
+
 	var newNode = makeInviteButton(payload.socket_id);
 	$('.socket_'+payload.socket_id+' button').replaceWith(newNode);
 });
@@ -143,6 +152,11 @@ socket.on('uninvited',function(payload){
 		alert(payload.message);
 		return;
 	}
+	var newHTML = '<p><b> you have been uninvited from the game</p></b>';
+	var newNode = $(newHTML);
+	newNode.hide();
+	$('#messages').prepend(newNode);
+	newNode.slideDown(1000);
 	var newNode = makeInviteButton(payload.socket_id);
 	$('.socket_'+payload.socket_id+' button').replaceWith(newNode);
 });
@@ -169,6 +183,33 @@ socket.on('game_start_response',function(payload){
 	/*jump to a new page */
 	window.location.href = 'game.html?username='+username+'&game_id=' +payload.game_id;
 });
+
+
+
+
+
+function rage_quit(who){
+	var payload = {};
+	payload.requested_user = who;
+
+	socket.emit('rage_quit', payload);
+
+	socket.on('rage_quit_response',function(payload){
+		if(payload.result == 'fail'){
+			alert(payload.message);
+			return;
+		}
+
+		/*jump back to lobby */
+		var newNode = makeQuitButton(payload.socket_id);
+
+		window.location.href = 'lobby.html?username='+username;
+	});
+
+}
+
+
+
 
 
 
@@ -268,6 +309,20 @@ function makeEngagedButton(){
 }
 
 
+
+function makeQuitButton(socket_id){
+
+	var newHTML = '<button type=\'button\' class=\'btn btn-danger\'>Quit</button>';
+	var newNode = $(newHTML);
+	newNode.click(function(){
+		rage_quit(socket_id);
+	});
+	return(newNode);
+}
+
+
+
+
 $(function(){
 	var payload = {};
 	payload.room = chat_room;
@@ -276,9 +331,13 @@ $(function(){
 	console.log('*** Client Log Message: \'join_room\' payload: '+JSON.stringify(payload));
 	socket.emit('join_room',payload);
 
+	var quitButton = makeQuitButton(payload.socket_id);
 	$('#quit').append('<a href="lobby.html?username='+username+'"class="btn btn-danger btn-default active" role="button" aria-pressed="true">Quit</a>');
-
 });
+
+
+
+
 
 
 
@@ -347,8 +406,8 @@ socket.on('game_update', function(payload){
 				$('#elapsed').html(minutes + ':'+seconds);
 			}
 		}}(payload.game.last_move_time) , 1000);
-	
-	
+
+
 	/*animate changes to the board*/
 
 	var blacksum=0;
@@ -407,13 +466,13 @@ socket.on('game_update', function(payload){
 			$('#'+row+'_'+column).off('click');
 
 			$('#'+row+'_'+column).removeClass('hovered_over');
-		
+
 
 
 			if(payload.game.whose_turn === my_color){
 				if(payload.game.legal_moves[row][column] === my_color.substr(0,1)){
 					$('#'+row+'_'+column).addClass('hovered_over');
-					
+
 					$('#'+row+'_'+column).click(function(r,c){
 						return function(){
 							var payload = {};
@@ -425,6 +484,21 @@ socket.on('game_update', function(payload){
 
 						};
 					}(row,column));
+
+				}
+				else{
+					$('#'+row+'_'+column).click(function(r,c){
+						return function(){
+							var payload = {};
+							payload.row = r;
+							payload.column = c;
+							payload.color = my_color;
+							if($('#'+r+'_'+c) !== 'w' || 'b'){
+								$('#'+r+'_'+c).html('<img src ="assets/images/error.gif" alt="error"/>');
+							}
+						};
+					}(row,column));
+
 
 				}
 			}
@@ -440,6 +514,8 @@ socket.on('game_update', function(payload){
 
 socket.on('play_token_response', function(payload){
 	console.log('*** Client Log Message: \'play_token_response\'\n\tpayload: '+JSON.stringify(payload));
+
+	rage_quit(payload.socket_id);
 	/*chekc for a good play_toekn_response update*/
 	if(payload.result == 'fail'){
 		console.log(payload.message);
